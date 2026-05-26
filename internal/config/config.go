@@ -93,14 +93,15 @@ func isCodexBackendAPIURL(raw string) bool {
 
 // Endpoint represents a single API endpoint configuration
 type Endpoint struct {
-	Name        string `json:"name"`
-	APIUrl      string `json:"apiUrl"`
-	APIKey      string `json:"apiKey"`
-	AuthMode    string `json:"authMode,omitempty"`
-	Enabled     bool   `json:"enabled"`
-	Transformer string `json:"transformer,omitempty"` // Transformer type: claude, openai, gemini, deepseek
-	Model       string `json:"model,omitempty"`       // Target model name for non-Claude APIs
-	Remark      string `json:"remark,omitempty"`      // Optional remark for the endpoint
+	Name              string `json:"name"`
+	APIUrl            string `json:"apiUrl"`
+	APIKey            string `json:"apiKey"`
+	AuthMode          string `json:"authMode,omitempty"`
+	Enabled           bool   `json:"enabled"`
+	Transformer       string `json:"transformer,omitempty"` // Transformer type: claude, openai, gemini, deepseek
+	Model             string `json:"model,omitempty"`       // Target model name for non-Claude APIs
+	Remark            string `json:"remark,omitempty"`      // Optional remark for the endpoint
+	ServiceTierPassthrough bool `json:"serviceTierPassthrough,omitempty"` // Enable service_tier passthrough for OpenAI
 }
 
 // WebDAVConfig represents WebDAV synchronization configuration
@@ -577,15 +578,16 @@ type StorageAdapter interface {
 
 // StorageEndpoint represents an endpoint in storage
 type StorageEndpoint struct {
-	Name        string
-	APIUrl      string
-	APIKey      string
-	AuthMode    string
-	Enabled     bool
-	Transformer string
-	Model       string
-	Remark      string
-	SortOrder   int
+	Name                    string
+	APIUrl                  string
+	APIKey                  string
+	AuthMode                string
+	Enabled                 bool
+	Transformer             string
+	Model                   string
+	Remark                  string
+	SortOrder               int
+	ServiceTierPassthrough  bool
 }
 
 // LoadFromStorage loads configuration from SQLite storage
@@ -609,6 +611,7 @@ func LoadFromStorage(storage StorageAdapter) (*Config, error) {
 			Transformer: ep.Transformer,
 			Model:       ep.Model,
 			Remark:      ep.Remark,
+			ServiceTierPassthrough: ep.ServiceTierPassthrough,
 		}
 		if endpoint.Transformer == "" {
 			endpoint.Transformer = "claude"
@@ -862,6 +865,7 @@ func (c *Config) SaveToStorage(storage StorageAdapter) error {
 			Transformer: ep.Transformer,
 			Model:       ep.Model,
 			Remark:      ep.Remark,
+			ServiceTierPassthrough: ep.ServiceTierPassthrough,
 		}
 		if normalizedEndpoint.Transformer == "" {
 			normalizedEndpoint.Transformer = "claude"
@@ -875,6 +879,7 @@ func (c *Config) SaveToStorage(storage StorageAdapter) error {
 		endpoint.Model = normalizedEndpoint.Model
 		endpoint.Remark = normalizedEndpoint.Remark
 		endpoint.SortOrder = i
+		endpoint.ServiceTierPassthrough = normalizedEndpoint.ServiceTierPassthrough
 
 		if existingNames[ep.Name] {
 			if err := storage.UpdateEndpoint(endpoint); err != nil {

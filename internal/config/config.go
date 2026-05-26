@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"path"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 )
 
 const (
+	DefaultListenAddress   = "0.0.0.0"
 	AuthModeAPIKey         = "api_key"
 	AuthModeTokenPool      = "token_pool"
 	AuthModeCodexTokenPool = "codex_token_pool"
@@ -161,6 +163,7 @@ type ProxyConfig struct {
 // Config represents the application configuration
 type Config struct {
 	Port                      int             `json:"port"`
+	ListenAddress             string          `json:"listenAddress"`
 	PortLocked                bool            `json:"-"` // CLI forced port, cannot be changed via API
 	BasicAuthEnabled          bool            `json:"basicAuthEnabled"`
 	BasicAuthUsername         string          `json:"basicAuthUsername"`
@@ -192,6 +195,7 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		Port:                      3000,
+		ListenAddress:             DefaultListenAddress,
 		BasicAuthEnabled:          true,
 		BasicAuthUsername:         "admin",
 		BasicAuthPassword:         "",
@@ -226,6 +230,10 @@ func (c *Config) Validate() error {
 	if c.Port < 1 || c.Port > 65535 {
 		return fmt.Errorf("invalid port: %d", c.Port)
 	}
+	if err := ValidateListenAddress(c.ListenAddress); err != nil {
+		return err
+	}
+	c.ListenAddress = NormalizeListenAddress(c.ListenAddress)
 
 	if len(c.Endpoints) == 0 {
 		return fmt.Errorf("no endpoints configured")
@@ -273,6 +281,31 @@ func (c *Config) GetPort() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.Port
+}
+
+// NormalizeListenAddress returns the default listen address when unset.
+func NormalizeListenAddress(address string) string {
+	address = strings.TrimSpace(address)
+	if address == "" {
+		return DefaultListenAddress
+	}
+	return address
+}
+
+// ValidateListenAddress validates the proxy listen IP address.
+func ValidateListenAddress(address string) error {
+	address = NormalizeListenAddress(address)
+	if net.ParseIP(address) == nil {
+		return fmt.Errorf("invalid listen address: %s", address)
+	}
+	return nil
+}
+
+// GetListenAddress returns the configured listen IP address (thread-safe)
+func (c *Config) GetListenAddress() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return NormalizeListenAddress(c.ListenAddress)
 }
 
 // GetLogLevel returns the configured log level (thread-safe)
@@ -328,6 +361,13 @@ func (c *Config) UpdatePort(port int) {
 		return
 	}
 	c.Port = port
+}
+
+// UpdateListenAddress updates the proxy listen IP address (thread-safe)
+func (c *Config) UpdateListenAddress(address string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.ListenAddress = NormalizeListenAddress(address)
 }
 
 // LockPort locks the port so it cannot be changed via API
@@ -629,6 +669,12 @@ func LoadFromStorage(storage StorageAdapter) (*Config, error) {
 	if config.Port == 0 {
 		config.Port = 3000
 	}
+	if listenAddress, err := storage.GetConfig("listenAddress"); err == nil && listenAddress != "" {
+		config.ListenAddress = NormalizeListenAddress(listenAddress)
+	}
+	if config.ListenAddress == "" {
+		config.ListenAddress = DefaultListenAddress
+	}
 
 	if logLevelStr, err := storage.GetConfig("logLevel"); err == nil && logLevelStr != "" {
 		if logLevel, err := strconv.Atoi(logLevelStr); err == nil {
@@ -903,6 +949,9 @@ func (c *Config) SaveToStorage(storage StorageAdapter) error {
 	// Save app config
 	if err := storage.SetConfig("port", strconv.Itoa(c.Port)); err != nil {
 		return fmt.Errorf("failed to save port config: %w", err)
+	}
+	if err := storage.SetConfig("listenAddress", NormalizeListenAddress(c.ListenAddress)); err != nil {
+		return fmt.Errorf("failed to save listenAddress config: %w", err)
 	}
 	if err := storage.SetConfig("logLevel", strconv.Itoa(c.LogLevel)); err != nil {
 		return fmt.Errorf("failed to save logLevel config: %w", err)

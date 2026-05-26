@@ -759,6 +759,13 @@ export function initUI() {
                         </p>
                     </div>
                     <div class="form-group">
+                        <label>${t('settings.listenAddress')}</label>
+                        <input type="text" id="settingsListenAddress" placeholder="${t('settings.listenAddressPlaceholder')}">
+                        <p style="color: #666; font-size: 12px; margin-top: 5px;">
+                            ${t('settings.listenAddressHelp')}
+                        </p>
+                    </div>
+                    <div class="form-group">
                         <label>${t('settings.proxy')}</label>
                         <input type="text" id="settingsProxyUrl" placeholder="${t('settings.proxyUrlPlaceholder')}">
                         <p style="color: #666; font-size: 12px; margin-top: 5px;">

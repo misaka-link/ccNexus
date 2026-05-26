@@ -223,6 +223,9 @@ export default {
         proxyUrl: '代理地址',
         proxyUrlPlaceholder: '例如：http://127.0.0.1:7890 或 socks5://127.0.0.1:1080',
         proxyHelp: '配置 HTTP/SOCKS5 代理，留空则直连',
+        listenAddress: '监听 IP',
+        listenAddressPlaceholder: '例如：0.0.0.0 或 127.0.0.1',
+        listenAddressHelp: '修改后需要重启应用生效。请注意网络安全',
         claudeNotification: '通知方式',
         notificationOptions: {
             disabled: '关闭通知',

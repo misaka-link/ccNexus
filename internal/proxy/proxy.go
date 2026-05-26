@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -99,6 +101,7 @@ func (p *Proxy) Start() error {
 // StartWithMux starts the proxy server with an optional custom mux
 func (p *Proxy) StartWithMux(customMux *http.ServeMux) error {
 	port := p.config.GetPort()
+	listenAddress := p.config.GetListenAddress()
 
 	var mux *http.ServeMux
 	if customMux != nil {
@@ -115,11 +118,11 @@ func (p *Proxy) StartWithMux(customMux *http.ServeMux) error {
 	mux.HandleFunc("/stats", p.handleStats)
 
 	p.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    net.JoinHostPort(listenAddress, strconv.Itoa(port)),
 		Handler: mux,
 	}
 
-	logger.Info("ccNexus starting on port %d", port)
+	logger.Info("ccNexus starting on %s", p.server.Addr)
 	logger.Info("Configured %d endpoints", len(p.config.GetEndpoints()))
 
 	return p.server.ListenAndServe()
@@ -638,14 +641,14 @@ func (p *Proxy) handleProxy(w http.ResponseWriter, r *http.Request) {
 				p.stats.RecordTokens(endpoint.Name, inputTokens, outputTokens)
 				p.recordCredentialUsage(credentialID, endpoint.Name, 1, 0, inputTokens, outputTokens)
 				p.markCredentialSuccess(credentialID)
-			p.markRequestInactive(endpoint.Name)
-			if p.onEndpointSuccess != nil {
-				p.onEndpointSuccess(endpoint.Name)
+				p.markRequestInactive(endpoint.Name)
+				if p.onEndpointSuccess != nil {
+					p.onEndpointSuccess(endpoint.Name)
+				}
+				totalElapsed := time.Since(requestStart).Round(time.Millisecond)
+				logger.Debug("[%s] Requested tokens=%d/%d latency=%s cred_id=%d", endpoint.Name, inputTokens, outputTokens, totalElapsed, credentialID)
+				return
 			}
-			totalElapsed := time.Since(requestStart).Round(time.Millisecond)
-			logger.Debug("[%s] Requested tokens=%d/%d latency=%s cred_id=%d", endpoint.Name, inputTokens, outputTokens, totalElapsed, credentialID)
-			return
-		}
 		}
 
 		if shouldRetry(resp.StatusCode) {

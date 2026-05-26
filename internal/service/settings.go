@@ -340,6 +340,7 @@ func (s *SettingsService) SetCodexProxyURL(proxyURL string) error {
 // SettingsData represents the settings data for batch save
 type SettingsData struct {
 	CloseWindowBehavior       string `json:"closeWindowBehavior"`
+	ListenAddress             string `json:"listenAddress"`
 	ProxyURL                  string `json:"proxyUrl"`
 	Theme                     string `json:"theme"`
 	ThemeAuto                 bool   `json:"themeAuto"`
@@ -367,6 +368,12 @@ func (s *SettingsService) SaveSettings(settingsJSON string) error {
 	// Update all settings in memory
 	if settings.CloseWindowBehavior != "" {
 		s.config.UpdateCloseWindowBehavior(settings.CloseWindowBehavior)
+	}
+	if settings.ListenAddress != "" {
+		if err := config.ValidateListenAddress(settings.ListenAddress); err != nil {
+			return err
+		}
+		s.config.UpdateListenAddress(settings.ListenAddress)
 	}
 
 	if settings.Theme != "" {
@@ -415,7 +422,7 @@ func (s *SettingsService) SaveSettings(settingsJSON string) error {
 		// Don't fail the whole save operation, just log the warning
 	}
 
-	logger.Info("Settings saved: closeWindowBehavior=%s, theme=%s, themeAuto=%v, proxyUrl=%s, claudeNotification=%v",
-		settings.CloseWindowBehavior, settings.Theme, settings.ThemeAuto, settings.ProxyURL, settings.ClaudeNotificationEnabled)
+	logger.Info("Settings saved: closeWindowBehavior=%s, listenAddress=%s, theme=%s, themeAuto=%v, proxyUrl=%s, claudeNotification=%v",
+		settings.CloseWindowBehavior, settings.ListenAddress, settings.Theme, settings.ThemeAuto, settings.ProxyURL, settings.ClaudeNotificationEnabled)
 	return nil
 }

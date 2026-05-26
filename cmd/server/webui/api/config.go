@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/lich0821/ccNexus/internal/config"
 	"github.com/lich0821/ccNexus/internal/logger"
 	"github.com/lich0821/ccNexus/internal/storage"
 )
@@ -59,7 +60,7 @@ func (h *Handler) handleBasicAuthConfig(w http.ResponseWriter, r *http.Request) 
 		}
 
 		WriteSuccess(w, map[string]interface{}{
-			"message": "Basic Auth configuration updated",
+			"message":  "Basic Auth configuration updated",
 			"enabled":  h.config.BasicAuthEnabled,
 			"username": h.config.BasicAuthUsername,
 		})
@@ -101,16 +102,18 @@ func (h *Handler) handleResetBasicAuthPassword(w http.ResponseWriter, r *http.Re
 // getConfig returns the full configuration
 func (h *Handler) getConfig(w http.ResponseWriter, r *http.Request) {
 	WriteSuccess(w, map[string]interface{}{
-		"port":     h.config.GetPort(),
-		"logLevel": h.config.GetLogLevel(),
+		"port":          h.config.GetPort(),
+		"listenAddress": h.config.GetListenAddress(),
+		"logLevel":      h.config.GetLogLevel(),
 	})
 }
 
 // updateConfig updates the full configuration
 func (h *Handler) updateConfig(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Port     int `json:"port"`
-		LogLevel int `json:"logLevel"`
+		Port          int    `json:"port"`
+		ListenAddress string `json:"listenAddress"`
+		LogLevel      int    `json:"logLevel"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -121,6 +124,13 @@ func (h *Handler) updateConfig(w http.ResponseWriter, r *http.Request) {
 	// Update port if provided
 	if req.Port > 0 {
 		h.config.UpdatePort(req.Port)
+	}
+	if req.ListenAddress != "" {
+		if err := config.ValidateListenAddress(req.ListenAddress); err != nil {
+			WriteError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		h.config.UpdateListenAddress(req.ListenAddress)
 	}
 
 	// Update log level if provided
@@ -146,8 +156,9 @@ func (h *Handler) handleConfigPort(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		WriteSuccess(w, map[string]interface{}{
-			"port":       h.config.GetPort(),
-			"portLocked": h.config.IsPortLocked(),
+			"port":          h.config.GetPort(),
+			"listenAddress": h.config.GetListenAddress(),
+			"portLocked":    h.config.IsPortLocked(),
 		})
 	case http.MethodPut:
 		if h.config.IsPortLocked() {
@@ -156,7 +167,8 @@ func (h *Handler) handleConfigPort(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var req struct {
-			Port int `json:"port"`
+			Port          int    `json:"port"`
+			ListenAddress string `json:"listenAddress"`
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -170,6 +182,13 @@ func (h *Handler) handleConfigPort(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.config.UpdatePort(req.Port)
+		if req.ListenAddress != "" {
+			if err := config.ValidateListenAddress(req.ListenAddress); err != nil {
+				WriteError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			h.config.UpdateListenAddress(req.ListenAddress)
+		}
 
 		// Save to storage
 		adapter := storage.NewConfigStorageAdapter(h.storage)
@@ -180,8 +199,9 @@ func (h *Handler) handleConfigPort(w http.ResponseWriter, r *http.Request) {
 		}
 
 		WriteSuccess(w, map[string]interface{}{
-			"port":    req.Port,
-			"message": "Port updated successfully (restart required)",
+			"port":          req.Port,
+			"listenAddress": h.config.GetListenAddress(),
+			"message":       "Listen configuration updated successfully (restart required)",
 		})
 	default:
 		WriteError(w, http.StatusMethodNotAllowed, "Method not allowed")

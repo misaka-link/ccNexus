@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"flag"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -101,7 +102,7 @@ func main() {
 		errCh <- p.StartWithMux(mux)
 	}()
 
-	logger.Info("ccNexus headless API listening on :%d (data dir: %s, db: %s)", cfg.GetPort(), dataDir, dbPath)
+	logger.Info("ccNexus headless API listening on %s (data dir: %s, db: %s)", net.JoinHostPort(cfg.GetListenAddress(), strconv.Itoa(cfg.GetPort())), dataDir, dbPath)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
@@ -160,6 +161,13 @@ func applyEnvOverrides(cfg *config.Config) {
 			cfg.UpdatePort(port)
 		} else {
 			logger.Warn("Invalid CCNEXUS_PORT value %q: %v", portStr, err)
+		}
+	}
+	if listenAddress := os.Getenv("CCNEXUS_LISTEN_ADDRESS"); listenAddress != "" {
+		if err := config.ValidateListenAddress(listenAddress); err == nil {
+			cfg.UpdateListenAddress(listenAddress)
+		} else {
+			logger.Warn("Invalid CCNEXUS_LISTEN_ADDRESS value %q: %v", listenAddress, err)
 		}
 	}
 

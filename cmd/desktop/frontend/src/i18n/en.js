@@ -223,6 +223,9 @@ export default {
         proxyUrl: 'Proxy URL',
         proxyUrlPlaceholder: 'e.g., http://127.0.0.1:7890 or socks5://127.0.0.1:1080',
         proxyHelp: 'Configure HTTP/SOCKS5 proxy, leave empty for direct connection',
+        listenAddress: 'Listen IP',
+        listenAddressPlaceholder: 'e.g., 0.0.0.0 or 127.0.0.1',
+        listenAddressHelp: 'Restart the app for changes to take effect. Pay attention to network security.',
         claudeNotification: 'Notification Method',
         notificationOptions: {
             disabled: 'Disabled',

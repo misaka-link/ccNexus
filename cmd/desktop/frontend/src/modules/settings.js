@@ -222,6 +222,11 @@ async function loadCurrentSettings() {
         if (notificationTypeSelect) {
             notificationTypeSelect.value = claudeNotificationType;
         }
+
+        const listenAddressInput = document.getElementById('settingsListenAddress');
+        if (listenAddressInput) {
+            listenAddressInput.value = config.listenAddress || '0.0.0.0';
+        }
     } catch (error) {
         console.error('Failed to load settings:', error);
     }
@@ -308,6 +313,7 @@ export async function saveSettings() {
         const language = document.getElementById('settingsLanguage').value;
         const theme = document.getElementById('settingsTheme').value;
         const themeAuto = document.getElementById('settingsThemeAuto').checked;
+        const listenAddress = document.getElementById('settingsListenAddress').value.trim() || '0.0.0.0';
         const proxyUrl = document.getElementById('settingsProxyUrl').value.trim();
 
         // Get Claude notification settings
@@ -321,6 +327,7 @@ export async function saveSettings() {
         // Use batch save to avoid database lock issues
         const settings = {
             closeWindowBehavior: closeWindowBehavior,
+            listenAddress: listenAddress,
             proxyUrl: proxyUrl,
             theme: theme,
             themeAuto: themeAuto,

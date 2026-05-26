@@ -1,5 +1,15 @@
 [
   {
+    "version": "v5.2.1",
+    "date": "2026-05-27",
+    "changes": [
+      "新增端点级 service_tier 传透开关，桌面端与服务器 WebUI 均可配置，默认关闭以兼容第三方上游",
+      "新增 OpenAI Chat 与 Responses API 转换链路的 xhigh 推理强度支持",
+      "新增 service_tier 配置的 SQLite 持久化、旧库自动迁移、备份合并与冲突检测支持",
+      "更新 GitHub Actions 构建环境到 Go 1.24.3，并固定 Wails CLI 版本为 v2.11.0"
+    ]
+  },
+  {
     "version": "v5.2.0",
     "date": "2026-03-11",
     "changes": [

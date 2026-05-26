@@ -1,5 +1,15 @@
 [
   {
+    "version": "v5.2.1",
+    "date": "2026-05-27",
+    "changes": [
+      "Added endpoint-level service_tier passthrough, configurable in Desktop and Server WebUI and disabled by default for upstream compatibility",
+      "Added xhigh reasoning effort support across OpenAI Chat and Responses API conversion paths",
+      "Added SQLite persistence, automatic migration, backup merge, and conflict detection support for the service_tier setting",
+      "Updated GitHub Actions build environment to Go 1.24.3 and pinned Wails CLI to v2.11.0"
+    ]
+  },
+  {
     "version": "v5.2.0",
     "date": "2026-03-11",
     "changes": [

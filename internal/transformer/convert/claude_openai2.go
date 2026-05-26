@@ -8,8 +8,8 @@ import (
 	"github.com/lich0821/ccNexus/internal/transformer"
 )
 
-// ClaudeReqToOpenAI2 converts Claude request to OpenAI Responses API request
-func ClaudeReqToOpenAI2(claudeReq []byte, model string) ([]byte, error) {
+// ClaudeReqToOpenAI2WithOptions converts Claude request to OpenAI Responses API request with options
+func ClaudeReqToOpenAI2WithOptions(claudeReq []byte, model string, serviceTierPassthrough bool) ([]byte, error) {
 	var req transformer.ClaudeRequest
 	if err := json.Unmarshal(claudeReq, &req); err != nil {
 		return nil, err
@@ -81,7 +81,19 @@ func ClaudeReqToOpenAI2(claudeReq []byte, model string) ([]byte, error) {
 		}
 	}
 
+	// Add service_tier passthrough if enabled
+	if serviceTierPassthrough {
+		if serviceTier, ok := req.Metadata["service_tier"].(string); ok && serviceTier != "" {
+			openai2Req["service_tier"] = serviceTier
+		}
+	}
+
 	return json.Marshal(openai2Req)
+}
+
+// ClaudeReqToOpenAI2 converts Claude request to OpenAI Responses API request
+func ClaudeReqToOpenAI2(claudeReq []byte, model string) ([]byte, error) {
+	return ClaudeReqToOpenAI2WithOptions(claudeReq, model, false)
 }
 
 func mapClaudeToolChoiceToOpenAI2(toolChoice interface{}) interface{} {

@@ -451,6 +451,16 @@ export function initUI() {
                         <label>${t('modal.remark')}</label>
                         <input type="text" id="endpointRemark" placeholder="${t('modal.remarkHelp')}">
                     </div>
+                    <div class="form-group">
+                        <label>${t('modal.serviceTierPassthrough')}</label>
+                        <select id="endpointServiceTierPassthrough">
+                            <option value="false">${t('modal.serviceTierPassthroughOff')}</option>
+                            <option value="true">${t('modal.serviceTierPassthroughOn')}</option>
+                        </select>
+                        <p style="color: #666; font-size: 12px; margin-top: 5px;">
+                            ${t('modal.serviceTierPassthroughHelp')}
+                        </p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" id="manageTokenPoolBtn" style="display: none;" onclick="window.openEndpointTokenPoolFromModal()">🪪 ${t('modal.manageTokenPool')}</button>

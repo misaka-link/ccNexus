@@ -7,7 +7,8 @@ import (
 
 // OpenAITransformer transforms Claude Code requests to OpenAI Chat format
 type OpenAITransformer struct {
-	model string
+	model                  string
+	serviceTierPassthrough bool
 }
 
 // NewOpenAITransformer creates a new transformer
@@ -15,12 +16,17 @@ func NewOpenAITransformer(model string) *OpenAITransformer {
 	return &OpenAITransformer{model: model}
 }
 
+// NewOpenAITransformerWithOptions creates a new transformer with endpoint options.
+func NewOpenAITransformerWithOptions(model string, serviceTierPassthrough bool) *OpenAITransformer {
+	return &OpenAITransformer{model: model, serviceTierPassthrough: serviceTierPassthrough}
+}
+
 func (t *OpenAITransformer) Name() string {
 	return "cc_openai"
 }
 
 func (t *OpenAITransformer) TransformRequest(req []byte) ([]byte, error) {
-	return convert.ClaudeReqToOpenAI(req, t.model)
+	return convert.ClaudeReqToOpenAIWithOptions(req, t.model, t.serviceTierPassthrough)
 }
 
 func (t *OpenAITransformer) TransformResponse(resp []byte, isStreaming bool) ([]byte, error) {

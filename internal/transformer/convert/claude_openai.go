@@ -9,6 +9,11 @@ import (
 
 // ClaudeReqToOpenAI converts Claude request to OpenAI Chat request
 func ClaudeReqToOpenAI(claudeReq []byte, model string) ([]byte, error) {
+	return ClaudeReqToOpenAIWithOptions(claudeReq, model, false)
+}
+
+// ClaudeReqToOpenAIWithOptions converts Claude request to OpenAI Chat request with endpoint options.
+func ClaudeReqToOpenAIWithOptions(claudeReq []byte, model string, serviceTierPassthrough bool) ([]byte, error) {
 	var req transformer.ClaudeRequest
 	if err := json.Unmarshal(claudeReq, &req); err != nil {
 		return nil, err
@@ -118,6 +123,22 @@ func ClaudeReqToOpenAI(claudeReq []byte, model string) ([]byte, error) {
 	}
 	if req.Temperature > 0 {
 		openaiReq.Temperature = &req.Temperature
+	}
+	if reasoning := reasoningFromClaudeMetadata(req.Metadata); reasoning != nil {
+		if effort := reasoningEffort(reasoning); effort != "" {
+			openaiReq.ReasoningEffort = effort
+		}
+	}
+	if serviceTierPassthrough {
+		serviceTier := strings.TrimSpace(req.ServiceTier)
+		if serviceTier == "" {
+			if metadataServiceTier, ok := req.Metadata["service_tier"].(string); ok {
+				serviceTier = strings.TrimSpace(metadataServiceTier)
+			}
+		}
+		if serviceTier != "" {
+			openaiReq.ServiceTier = serviceTier
+		}
 	}
 
 	// Convert tools

@@ -111,15 +111,16 @@ func (h *Handler) getEndpoint(w http.ResponseWriter, r *http.Request, name strin
 // createEndpoint creates a new endpoint
 func (h *Handler) createEndpoint(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Name        string `json:"name"`
-		APIUrl      string `json:"apiUrl"`
-		APIKey      string `json:"apiKey"`
-		AuthMode    string `json:"authMode"`
-		Enabled     bool   `json:"enabled"`
-		Transformer string `json:"transformer"`
-		Model       string `json:"model"`
-		Remark      string `json:"remark"`
-		CloneFrom   string `json:"cloneFrom"` // Clone from existing endpoint name
+		Name                   string `json:"name"`
+		APIUrl                 string `json:"apiUrl"`
+		APIKey                 string `json:"apiKey"`
+		AuthMode               string `json:"authMode"`
+		Enabled                bool   `json:"enabled"`
+		Transformer            string `json:"transformer"`
+		Model                  string `json:"model"`
+		Remark                 string `json:"remark"`
+		ServiceTierPassthrough bool   `json:"serviceTierPassthrough"`
+		CloneFrom              string `json:"cloneFrom"` // Clone from existing endpoint name
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -142,12 +143,13 @@ func (h *Handler) createEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	authMode := config.NormalizeAuthMode(req.AuthMode)
 	normalizedEndpoint := config.Endpoint{
-		APIUrl:      normalizeAPIUrl(req.APIUrl),
-		APIKey:      req.APIKey,
-		AuthMode:    authMode,
-		Transformer: req.Transformer,
-		Model:       req.Model,
-		Remark:      req.Remark,
+		APIUrl:                 normalizeAPIUrl(req.APIUrl),
+		APIKey:                 req.APIKey,
+		AuthMode:               authMode,
+		Transformer:            req.Transformer,
+		Model:                  req.Model,
+		Remark:                 req.Remark,
+		ServiceTierPassthrough: req.ServiceTierPassthrough,
 	}
 	if normalizedEndpoint.Transformer == "" {
 		normalizedEndpoint.Transformer = "claude"
@@ -189,17 +191,18 @@ func (h *Handler) createEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	// Create new endpoint
 	endpoint := &storage.Endpoint{
-		Name:        req.Name,
-		APIUrl:      normalizeAPIUrl(req.APIUrl),
-		APIKey:      req.APIKey,
-		AuthMode:    authMode,
-		Enabled:     req.Enabled,
-		Transformer: req.Transformer,
-		Model:       req.Model,
-		Remark:      req.Remark,
-		SortOrder:   len(endpoints),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		Name:                   req.Name,
+		APIUrl:                 normalizeAPIUrl(req.APIUrl),
+		APIKey:                 req.APIKey,
+		AuthMode:               authMode,
+		Enabled:                req.Enabled,
+		Transformer:            req.Transformer,
+		Model:                  req.Model,
+		Remark:                 req.Remark,
+		ServiceTierPassthrough: normalizedEndpoint.ServiceTierPassthrough,
+		SortOrder:              len(endpoints),
+		CreatedAt:              time.Now(),
+		UpdatedAt:              time.Now(),
 	}
 
 	if err := h.storage.SaveEndpoint(endpoint); err != nil {
@@ -220,14 +223,15 @@ func (h *Handler) createEndpoint(w http.ResponseWriter, r *http.Request) {
 // updateEndpoint updates an existing endpoint
 func (h *Handler) updateEndpoint(w http.ResponseWriter, r *http.Request, name string) {
 	var req struct {
-		Name        string `json:"name"`
-		APIUrl      string `json:"apiUrl"`
-		APIKey      string `json:"apiKey"`
-		AuthMode    string `json:"authMode"`
-		Enabled     bool   `json:"enabled"`
-		Transformer string `json:"transformer"`
-		Model       string `json:"model"`
-		Remark      string `json:"remark"`
+		Name                   string `json:"name"`
+		APIUrl                 string `json:"apiUrl"`
+		APIKey                 string `json:"apiKey"`
+		AuthMode               string `json:"authMode"`
+		Enabled                bool   `json:"enabled"`
+		Transformer            string `json:"transformer"`
+		Model                  string `json:"model"`
+		Remark                 string `json:"remark"`
+		ServiceTierPassthrough bool   `json:"serviceTierPassthrough"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -273,14 +277,15 @@ func (h *Handler) updateEndpoint(w http.ResponseWriter, r *http.Request, name st
 		existing.AuthMode = config.AuthModeAPIKey
 	}
 	normalizedEndpoint := config.Endpoint{
-		Name:        existing.Name,
-		APIUrl:      existing.APIUrl,
-		APIKey:      existing.APIKey,
-		AuthMode:    existing.AuthMode,
-		Enabled:     existing.Enabled,
-		Transformer: existing.Transformer,
-		Model:       existing.Model,
-		Remark:      existing.Remark,
+		Name:                   existing.Name,
+		APIUrl:                 existing.APIUrl,
+		APIKey:                 existing.APIKey,
+		AuthMode:               existing.AuthMode,
+		Enabled:                existing.Enabled,
+		Transformer:            existing.Transformer,
+		Model:                  existing.Model,
+		Remark:                 existing.Remark,
+		ServiceTierPassthrough: req.ServiceTierPassthrough,
 	}
 	if normalizedEndpoint.Transformer == "" {
 		normalizedEndpoint.Transformer = "claude"
@@ -302,6 +307,7 @@ func (h *Handler) updateEndpoint(w http.ResponseWriter, r *http.Request, name st
 		existing.Model = req.Model
 	}
 	existing.Remark = req.Remark
+	existing.ServiceTierPassthrough = normalizedEndpoint.ServiceTierPassthrough
 	existing.UpdatedAt = time.Now()
 
 	if err := h.storage.UpdateEndpoint(existing); err != nil {

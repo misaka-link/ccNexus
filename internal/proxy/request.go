@@ -60,12 +60,12 @@ func prepareCCTransformer(endpoint config.Endpoint, endpointTransformer string) 
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("OpenAI transformer requires model field")
 		}
-		return cc.NewOpenAITransformer(endpoint.Model), nil
+		return cc.NewOpenAITransformerWithOptions(endpoint.Model, endpoint.ServiceTierPassthrough), nil
 	case "openai2":
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("OpenAI2 transformer requires model field")
 		}
-		return cc.NewOpenAI2Transformer(endpoint.Model), nil
+		return cc.NewOpenAI2TransformerWithOptions(endpoint.Model, endpoint.ServiceTierPassthrough), nil
 	case "gemini":
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("Gemini transformer requires model field")
@@ -89,12 +89,12 @@ func prepareCxChatTransformer(endpoint config.Endpoint, endpointTransformer stri
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("OpenAI transformer requires model field")
 		}
-		return chat.NewOpenAITransformer(endpoint.Model), nil
+		return chat.NewOpenAITransformerWithOptions(endpoint.Model, endpoint.ServiceTierPassthrough), nil
 	case "openai2":
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("OpenAI2 transformer requires model field")
 		}
-		return chat.NewOpenAI2Transformer(endpoint.Model), nil
+		return chat.NewOpenAI2TransformerWithOptions(endpoint.Model, endpoint.ServiceTierPassthrough), nil
 	case "gemini":
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("Gemini transformer requires model field")
@@ -118,12 +118,12 @@ func prepareCxRespTransformer(endpoint config.Endpoint, endpointTransformer stri
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("OpenAI transformer requires model field")
 		}
-		return responses.NewOpenAITransformer(endpoint.Model), nil
+		return responses.NewOpenAITransformerWithOptions(endpoint.Model, endpoint.ServiceTierPassthrough), nil
 	case "openai2":
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("OpenAI2 transformer requires model field")
 		}
-		return responses.NewOpenAI2Transformer(endpoint.Model), nil
+		return responses.NewOpenAI2TransformerWithOptions(endpoint.Model, endpoint.ServiceTierPassthrough), nil
 	case "gemini":
 		if endpoint.Model == "" {
 			return nil, fmt.Errorf("Gemini transformer requires model field")

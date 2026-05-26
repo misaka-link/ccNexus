@@ -392,6 +392,13 @@ class Endpoints {
                             </div>
                             <div class="form-group">
                                 <label>
+                                    <input type="checkbox" class="form-checkbox" name="serviceTierPassthrough" ${endpoint?.serviceTierPassthrough ? 'checked' : ''}>
+                                    ${t('endpoints.serviceTierPassthrough')}
+                                </label>
+                                <small class="text-muted">${t('endpoints.serviceTierPassthroughHint')}</small>
+                            </div>
+                            <div class="form-group">
+                                <label>
                                     <input type="checkbox" class="form-checkbox" name="enabled" ${endpoint?.enabled !== false ? 'checked' : ''}>
                                     ${t('common.enabled')}
                                 </label>
@@ -520,6 +527,7 @@ class Endpoints {
             transformer: formData.get('transformer'),
             model: formData.get('model'),
             remark: formData.get('remark'),
+            serviceTierPassthrough: formData.get('serviceTierPassthrough') === 'on',
             enabled: formData.get('enabled') === 'on'
         };
 
@@ -653,6 +661,7 @@ class Endpoints {
             transformer: endpoint.transformer,
             model: endpoint.model,
             remark: endpoint.remark,
+            serviceTierPassthrough: endpoint.serviceTierPassthrough,
             enabled: endpoint.enabled,
             cloneFrom: name  // Reference to source endpoint
         };

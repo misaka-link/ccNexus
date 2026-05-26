@@ -10,6 +10,11 @@ import (
 
 // OpenAIReqToOpenAI2 converts OpenAI Chat request to OpenAI Responses request
 func OpenAIReqToOpenAI2(openaiReq []byte, model string) ([]byte, error) {
+	return OpenAIReqToOpenAI2WithOptions(openaiReq, model, false)
+}
+
+// OpenAIReqToOpenAI2WithOptions converts OpenAI Chat request to OpenAI Responses request with endpoint options.
+func OpenAIReqToOpenAI2WithOptions(openaiReq []byte, model string, serviceTierPassthrough bool) ([]byte, error) {
 	var req transformer.OpenAIRequest
 	if err := json.Unmarshal(openaiReq, &req); err != nil {
 		return nil, err
@@ -47,6 +52,15 @@ func OpenAIReqToOpenAI2(openaiReq []byte, model string) ([]byte, error) {
 	// TODO: max_output_tokens is standard OpenAI Responses API param but some
 	// third-party endpoints (e.g. SiliconFlow) don't support it. Skipping for compatibility.
 
+	if req.Reasoning != nil {
+		openai2Req["reasoning"] = normalizeReasoningMap(req.Reasoning)
+	} else if strings.TrimSpace(req.ReasoningEffort) != "" {
+		openai2Req["reasoning"] = map[string]interface{}{"effort": normalizeReasoningEffort(req.ReasoningEffort)}
+	}
+	if serviceTierPassthrough && strings.TrimSpace(req.ServiceTier) != "" {
+		openai2Req["service_tier"] = strings.TrimSpace(req.ServiceTier)
+	}
+
 	if len(req.Tools) > 0 {
 		var tools []map[string]interface{}
 		for _, tool := range req.Tools {
@@ -76,6 +90,11 @@ func OpenAIReqToOpenAI2(openaiReq []byte, model string) ([]byte, error) {
 
 // OpenAI2ReqToOpenAI converts OpenAI Responses request to OpenAI Chat request
 func OpenAI2ReqToOpenAI(openai2Req []byte, model string) ([]byte, error) {
+	return OpenAI2ReqToOpenAIWithOptions(openai2Req, model, false)
+}
+
+// OpenAI2ReqToOpenAIWithOptions converts OpenAI Responses request to OpenAI Chat request with endpoint options.
+func OpenAI2ReqToOpenAIWithOptions(openai2Req []byte, model string, serviceTierPassthrough bool) ([]byte, error) {
 	var req transformer.OpenAI2Request
 	if err := json.Unmarshal(openai2Req, &req); err != nil {
 		return nil, err
@@ -151,6 +170,12 @@ func OpenAI2ReqToOpenAI(openai2Req []byte, model string) ([]byte, error) {
 	if req.MaxOutputTokens > 0 {
 		openaiReq.MaxCompletionTokens = req.MaxOutputTokens
 	}
+	if effort := reasoningEffort(req.Reasoning); effort != "" {
+		openaiReq.ReasoningEffort = effort
+	}
+	if serviceTierPassthrough && strings.TrimSpace(req.ServiceTier) != "" {
+		openaiReq.ServiceTier = strings.TrimSpace(req.ServiceTier)
+	}
 
 	if len(req.Tools) > 0 {
 		for _, tool := range req.Tools {
@@ -191,6 +216,38 @@ func OpenAI2ReqToOpenAI(openai2Req []byte, model string) ([]byte, error) {
 	}
 
 	return json.Marshal(openaiReq)
+}
+
+func normalizeReasoningMap(reasoning map[string]interface{}) map[string]interface{} {
+	if reasoning == nil {
+		return nil
+	}
+	normalized := make(map[string]interface{}, len(reasoning))
+	for key, value := range reasoning {
+		if key == "effort" {
+			if effort, ok := value.(string); ok {
+				normalized[key] = normalizeReasoningEffort(effort)
+				continue
+			}
+		}
+		normalized[key] = value
+	}
+	return normalized
+}
+
+func reasoningEffort(reasoning map[string]interface{}) string {
+	if reasoning == nil {
+		return ""
+	}
+	effort, ok := reasoning["effort"].(string)
+	if !ok {
+		return ""
+	}
+	return normalizeReasoningEffort(effort)
+}
+
+func normalizeReasoningEffort(effort string) string {
+	return strings.ToLower(strings.TrimSpace(effort))
 }
 
 func mapOpenAIToolChoiceToOpenAI2(toolChoice interface{}) interface{} {

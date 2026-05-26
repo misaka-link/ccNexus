@@ -33,16 +33,19 @@ type OpenAIMessage struct {
 
 // OpenAIRequest represents an OpenAI API request
 type OpenAIRequest struct {
-	Model               string          `json:"model"`
-	Messages            []OpenAIMessage `json:"messages"`
-	MaxTokens           int             `json:"max_tokens,omitempty"` // Legacy field
-	MaxCompletionTokens int             `json:"max_completion_tokens,omitempty"`
-	Temperature         *float64        `json:"temperature,omitempty"`
-	Stream              bool            `json:"stream,omitempty"`
-	StreamOptions       *StreamOptions  `json:"stream_options,omitempty"`
-	EnableThinking      bool            `json:"enable_thinking,omitempty"` // For models that support reasoning/thinking
-	Tools               []OpenAITool    `json:"tools,omitempty"`
-	ToolChoice          interface{}     `json:"tool_choice,omitempty"`
+	Model               string                 `json:"model"`
+	Messages            []OpenAIMessage        `json:"messages"`
+	MaxTokens           int                    `json:"max_tokens,omitempty"` // Legacy field
+	MaxCompletionTokens int                    `json:"max_completion_tokens,omitempty"`
+	Temperature         *float64               `json:"temperature,omitempty"`
+	Stream              bool                   `json:"stream,omitempty"`
+	StreamOptions       *StreamOptions         `json:"stream_options,omitempty"`
+	EnableThinking      bool                   `json:"enable_thinking,omitempty"` // For models that support reasoning/thinking
+	Reasoning           map[string]interface{} `json:"reasoning,omitempty"`
+	ReasoningEffort     string                 `json:"reasoning_effort,omitempty"`
+	ServiceTier         string                 `json:"service_tier,omitempty"`
+	Tools               []OpenAITool           `json:"tools,omitempty"`
+	ToolChoice          interface{}            `json:"tool_choice,omitempty"`
 }
 
 // StreamOptions represents OpenAI stream options
@@ -106,15 +109,17 @@ type ClaudeMessage struct {
 
 // ClaudeRequest represents a Claude API request
 type ClaudeRequest struct {
-	Model       string          `json:"model"`
-	Messages    []ClaudeMessage `json:"messages"`
-	MaxTokens   int             `json:"max_tokens,omitempty"`
-	Temperature float64         `json:"temperature,omitempty"`
-	Stream      bool            `json:"stream,omitempty"`
-	System      interface{}     `json:"system,omitempty"`   // Can be string or array of system messages
-	Thinking    interface{}     `json:"thinking,omitempty"` // Claude's thinking/extended thinking parameter
-	Tools       []ClaudeTool    `json:"tools,omitempty"`
-	ToolChoice  interface{}     `json:"tool_choice,omitempty"`
+	Model       string                 `json:"model"`
+	Messages    []ClaudeMessage        `json:"messages"`
+	MaxTokens   int                    `json:"max_tokens,omitempty"`
+	Temperature float64                `json:"temperature,omitempty"`
+	Stream      bool                   `json:"stream,omitempty"`
+	System      interface{}            `json:"system,omitempty"`   // Can be string or array of system messages
+	Thinking    interface{}            `json:"thinking,omitempty"` // Claude's thinking/extended thinking parameter
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	ServiceTier string                 `json:"service_tier,omitempty"`
+	Tools       []ClaudeTool           `json:"tools,omitempty"`
+	ToolChoice  interface{}            `json:"tool_choice,omitempty"`
 }
 
 // ClaudeTool represents a tool definition in Claude format
@@ -354,14 +359,16 @@ type OpenAI2Tool struct {
 
 // OpenAI2Request represents an OpenAI Responses API request
 type OpenAI2Request struct {
-	Model           string        `json:"model"`
-	Input           interface{}   `json:"input"`                  // string or []OpenAI2InputItem
-	Instructions    string        `json:"instructions,omitempty"` // system prompt
-	Tools           []OpenAI2Tool `json:"tools,omitempty"`
-	ToolChoice      interface{}   `json:"tool_choice,omitempty"`
-	Stream          bool          `json:"stream,omitempty"`
-	MaxOutputTokens int           `json:"max_output_tokens,omitempty"`
-	Temperature     *float64      `json:"temperature,omitempty"`
+	Model           string                 `json:"model"`
+	Input           interface{}            `json:"input"`                  // string or []OpenAI2InputItem
+	Instructions    string                 `json:"instructions,omitempty"` // system prompt
+	Tools           []OpenAI2Tool          `json:"tools,omitempty"`
+	ToolChoice      interface{}            `json:"tool_choice,omitempty"`
+	Stream          bool                   `json:"stream,omitempty"`
+	MaxOutputTokens int                    `json:"max_output_tokens,omitempty"`
+	Temperature     *float64               `json:"temperature,omitempty"`
+	Reasoning       map[string]interface{} `json:"reasoning,omitempty"`
+	ServiceTier     string                 `json:"service_tier,omitempty"`
 }
 
 // OpenAI2OutputItem represents an output item in Responses API response

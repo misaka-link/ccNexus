@@ -7,7 +7,8 @@ import (
 
 // OpenAI2Transformer transforms Codex Chat requests to OpenAI Responses format
 type OpenAI2Transformer struct {
-	model string
+	model                  string
+	serviceTierPassthrough bool
 }
 
 // NewOpenAI2Transformer creates a new transformer
@@ -15,12 +16,17 @@ func NewOpenAI2Transformer(model string) *OpenAI2Transformer {
 	return &OpenAI2Transformer{model: model}
 }
 
+// NewOpenAI2TransformerWithOptions creates a new transformer with endpoint options.
+func NewOpenAI2TransformerWithOptions(model string, serviceTierPassthrough bool) *OpenAI2Transformer {
+	return &OpenAI2Transformer{model: model, serviceTierPassthrough: serviceTierPassthrough}
+}
+
 func (t *OpenAI2Transformer) Name() string {
 	return "cx_chat_openai2"
 }
 
 func (t *OpenAI2Transformer) TransformRequest(req []byte) ([]byte, error) {
-	return convert.OpenAIReqToOpenAI2(req, t.model)
+	return convert.OpenAIReqToOpenAI2WithOptions(req, t.model, t.serviceTierPassthrough)
 }
 
 func (t *OpenAI2Transformer) TransformResponse(resp []byte, isStreaming bool) ([]byte, error) {

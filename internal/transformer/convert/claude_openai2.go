@@ -53,6 +53,10 @@ func ClaudeReqToOpenAI2WithOptions(claudeReq []byte, model string, serviceTierPa
 	// TODO: max_output_tokens is standard OpenAI Responses API param but some
 	// third-party endpoints (e.g. SiliconFlow) don't support it. Skipping for compatibility.
 
+	if reasoning := reasoningFromClaudeMetadata(req.Metadata); reasoning != nil {
+		openai2Req["reasoning"] = reasoning
+	}
+
 	// Convert tools
 	if len(req.Tools) > 0 {
 		var tools []map[string]interface{}
@@ -83,12 +87,31 @@ func ClaudeReqToOpenAI2WithOptions(claudeReq []byte, model string, serviceTierPa
 
 	// Add service_tier passthrough if enabled
 	if serviceTierPassthrough {
-		if serviceTier, ok := req.Metadata["service_tier"].(string); ok && serviceTier != "" {
+		serviceTier := strings.TrimSpace(req.ServiceTier)
+		if serviceTier == "" {
+			if metadataServiceTier, ok := req.Metadata["service_tier"].(string); ok {
+				serviceTier = strings.TrimSpace(metadataServiceTier)
+			}
+		}
+		if serviceTier != "" {
 			openai2Req["service_tier"] = serviceTier
 		}
 	}
 
 	return json.Marshal(openai2Req)
+}
+
+func reasoningFromClaudeMetadata(metadata map[string]interface{}) map[string]interface{} {
+	if metadata == nil {
+		return nil
+	}
+	if reasoning, ok := metadata["reasoning"].(map[string]interface{}); ok {
+		return normalizeReasoningMap(reasoning)
+	}
+	if effort, ok := metadata["reasoning_effort"].(string); ok && strings.TrimSpace(effort) != "" {
+		return map[string]interface{}{"effort": normalizeReasoningEffort(effort)}
+	}
+	return nil
 }
 
 // ClaudeReqToOpenAI2 converts Claude request to OpenAI Responses API request

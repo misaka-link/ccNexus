@@ -1,3 +1,14 @@
+## 与主仓库的区别
+
+本 fork 当前相对主仓库额外新增以下改动：
+
+- **端点级 `service_tier` 传透开关**：添加/编辑端点时可选择是否传透 `service_tier`，默认关闭；关闭时会移除该字段以兼容不支持的第三方上游。
+- **桌面端与服务器 WebUI 同步支持**：桌面端和服务器 WebUI 都已接入 `service_tier` 传透配置。
+- **`xhigh` 推理强度支持**：OpenAI Chat 与 Responses API 转换会保留 `reasoning.effort: "xhigh"` / `reasoning_effort: "xhigh"`。
+- **配置持久化与迁移**：SQLite 端点表新增对应字段，配置加载、保存、备份合并和冲突检测均已支持该配置。
+
+---
+
 <div align="center">
 
 <p align="center">

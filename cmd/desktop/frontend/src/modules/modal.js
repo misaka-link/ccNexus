@@ -192,6 +192,7 @@ export function showAddEndpointModal() {
     document.getElementById('endpointTransformer').value = 'claude';
     document.getElementById('endpointModel').value = '';
     document.getElementById('endpointRemark').value = '';
+    document.getElementById('endpointServiceTierPassthrough').value = 'false';
     handleAuthModeChange();
     updateManageTokenPoolButton();
     handleTransformerChange();
@@ -211,6 +212,7 @@ export function showAddEndpointModalWithPreset(presetData) {
 	document.getElementById('endpointTransformer').value = presetData.transformer || 'claude';
 	document.getElementById('endpointModel').value = presetData.model || '';
 	document.getElementById('endpointRemark').value = presetData.remark || '';
+	document.getElementById('endpointServiceTierPassthrough').value = presetData.serviceTierPassthrough ? 'true' : 'false';
 	handleAuthModeChange();
 	updateManageTokenPoolButton();
 	handleTransformerChange();
@@ -233,6 +235,7 @@ export async function editEndpoint(index) {
     document.getElementById('endpointTransformer').value = ep.transformer || 'claude';
     document.getElementById('endpointModel').value = ep.model || '';
     document.getElementById('endpointRemark').value = ep.remark || '';
+    document.getElementById('endpointServiceTierPassthrough').value = ep.serviceTierPassthrough ? 'true' : 'false';
 
     handleAuthModeChange();
     updateManageTokenPoolButton();
@@ -261,6 +264,7 @@ export async function saveEndpoint() {
 	let transformer = document.getElementById('endpointTransformer').value;
     const model = document.getElementById('endpointModel').value.trim();
     const remark = document.getElementById('endpointRemark').value.trim();
+    const serviceTierPassthrough = document.getElementById('endpointServiceTierPassthrough')?.value === 'true';
     const isCodexTokenPool = isCodexTokenPoolMode(authMode);
 
     if (isCodexTokenPool) {
@@ -294,9 +298,9 @@ export async function saveEndpoint() {
 
     try {
         if (currentEditIndex === -1) {
-            await addEndpoint(name, url, key, authMode, transformer, model, remark);
+            await addEndpoint(name, url, key, authMode, transformer, model, remark, serviceTierPassthrough);
         } else {
-            await updateEndpoint(currentEditIndex, name, url, key, authMode, transformer, model, remark);
+            await updateEndpoint(currentEditIndex, name, url, key, authMode, transformer, model, remark, serviceTierPassthrough);
         }
 
         closeModal();

@@ -2,11 +2,13 @@ package chat
 
 import (
 	"github.com/lich0821/ccNexus/internal/transformer"
+	"github.com/lich0821/ccNexus/internal/transformer/convert"
 )
 
 // OpenAITransformer is a passthrough transformer for Codex Chat → OpenAI Chat
 type OpenAITransformer struct {
-	model string
+	model                  string
+	serviceTierPassthrough bool
 }
 
 // NewOpenAITransformer creates a new passthrough transformer
@@ -14,12 +16,17 @@ func NewOpenAITransformer(model string) *OpenAITransformer {
 	return &OpenAITransformer{model: model}
 }
 
+// NewOpenAITransformerWithOptions creates a new passthrough transformer with endpoint options.
+func NewOpenAITransformerWithOptions(model string, serviceTierPassthrough bool) *OpenAITransformer {
+	return &OpenAITransformer{model: model, serviceTierPassthrough: serviceTierPassthrough}
+}
+
 func (t *OpenAITransformer) Name() string {
 	return "cx_chat_openai"
 }
 
 func (t *OpenAITransformer) TransformRequest(req []byte) ([]byte, error) {
-	return req, nil
+	return convert.ApplyServiceTierPassthrough(req, t.serviceTierPassthrough)
 }
 
 func (t *OpenAITransformer) TransformResponse(resp []byte, isStreaming bool) ([]byte, error) {

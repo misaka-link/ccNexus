@@ -92,6 +92,26 @@ func syncGeminiUsageMetadata(resp *transformer.GeminiResponse, ctx *transformer.
 	}
 }
 
+// ApplyServiceTierPassthrough removes service_tier unless the endpoint explicitly allows it.
+func ApplyServiceTierPassthrough(req []byte, enabled bool) ([]byte, error) {
+	if enabled {
+		return req, nil
+	}
+	trimmed := strings.TrimSpace(string(req))
+	if trimmed == "" || strings.HasPrefix(trimmed, "[") {
+		return req, nil
+	}
+	var body map[string]interface{}
+	if err := json.Unmarshal(req, &body); err != nil {
+		return req, nil
+	}
+	if _, ok := body["service_tier"]; !ok {
+		return req, nil
+	}
+	delete(body, "service_tier")
+	return json.Marshal(body)
+}
+
 func currentOpenAIUsage(ctx *transformer.StreamContext) map[string]interface{} {
 	if ctx == nil || (ctx.InputTokens == 0 && ctx.OutputTokens == 0) {
 		return nil

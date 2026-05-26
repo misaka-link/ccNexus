@@ -36,6 +36,66 @@ func TestOpenAIReqToOpenAI2DefaultsToolChoiceAutoWhenToolsPresent(t *testing.T) 
 	}
 }
 
+func TestOpenAIReqToOpenAI2PreservesXHighReasoning(t *testing.T) {
+	openaiReq := `{
+		"model":"gpt-5",
+		"stream":true,
+		"messages":[{"role":"user","content":"test"}],
+		"reasoning":{"effort":"xhigh"}
+	}`
+
+	reqBytes, err := OpenAIReqToOpenAI2([]byte(openaiReq), "gpt-5")
+	if err != nil {
+		t.Fatalf("OpenAIReqToOpenAI2 failed: %v", err)
+	}
+
+	var req map[string]interface{}
+	if err := json.Unmarshal(reqBytes, &req); err != nil {
+		t.Fatalf("unmarshal transformed req failed: %v", err)
+	}
+
+	reasoning, ok := req["reasoning"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected reasoning object, got %#v", req["reasoning"])
+	}
+	if reasoning["effort"] != "xhigh" {
+		t.Fatalf("expected reasoning effort xhigh, got %#v", reasoning["effort"])
+	}
+}
+
+func TestOpenAIReqToOpenAI2ServiceTierPassthroughOption(t *testing.T) {
+	openaiReq := `{
+		"model":"gpt-5",
+		"stream":true,
+		"messages":[{"role":"user","content":"test"}],
+		"service_tier":"priority"
+	}`
+
+	disabledBytes, err := OpenAIReqToOpenAI2WithOptions([]byte(openaiReq), "gpt-5", false)
+	if err != nil {
+		t.Fatalf("OpenAIReqToOpenAI2WithOptions disabled failed: %v", err)
+	}
+	var disabled map[string]interface{}
+	if err := json.Unmarshal(disabledBytes, &disabled); err != nil {
+		t.Fatalf("unmarshal disabled transformed req failed: %v", err)
+	}
+	if _, ok := disabled["service_tier"]; ok {
+		t.Fatalf("did not expect service_tier when passthrough is disabled, got %#v", disabled["service_tier"])
+	}
+
+	enabledBytes, err := OpenAIReqToOpenAI2WithOptions([]byte(openaiReq), "gpt-5", true)
+	if err != nil {
+		t.Fatalf("OpenAIReqToOpenAI2WithOptions enabled failed: %v", err)
+	}
+	var enabled map[string]interface{}
+	if err := json.Unmarshal(enabledBytes, &enabled); err != nil {
+		t.Fatalf("unmarshal enabled transformed req failed: %v", err)
+	}
+	if enabled["service_tier"] != "priority" {
+		t.Fatalf("expected service_tier priority, got %#v", enabled["service_tier"])
+	}
+}
+
 func TestOpenAI2RespToOpenAIPreservesTotalTokens(t *testing.T) {
 	openai2Resp := `{
 		"id":"resp_123",

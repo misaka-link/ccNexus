@@ -79,6 +79,8 @@ export default {
         addEndpoint: 'Add Endpoint',
         cloneEndpoint: 'Clone',
         remark: 'Remark',
+        serviceTierPassthrough: 'Pass through service_tier',
+        serviceTierPassthroughHint: 'Forward request service_tier upstream when enabled; remove it when disabled for compatibility',
         fetchModels: 'Fetch Models',
         fetchModelsHint: 'Click "Fetch Models" to load available models from the API',
         modelPlaceholder: 'gpt-4, gemini-pro, etc.',

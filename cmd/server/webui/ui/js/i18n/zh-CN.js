@@ -79,6 +79,8 @@ export default {
         addEndpoint: '添加端点',
         cloneEndpoint: '克隆端点',
         remark: '备注',
+        serviceTierPassthrough: '开启 service_tier 传透',
+        serviceTierPassthroughHint: '启用后转发请求中的 service_tier；关闭时移除该字段以兼容上游',
         fetchModels: '获取模型',
         fetchModelsHint: '点击"获取模型"从 API 加载可用模型',
         modelPlaceholder: 'gpt-4、gemini-pro 等',
